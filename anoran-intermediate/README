@@ -1,21 +1,19 @@
-Level 4
+Level 6
 
-Your ears become more in tune with the surroundings. Listen to find enemies and captives!
+What's that ticking? Some captives have a timed bomb at their feet!
 
-Tip: Use `warrior.listen()` to find spaces with other units, and `warrior.directionOf()` to determine what direction they're in.
+Tip: Hurry and rescue captives that have `space.isTicking()` first, they'll soon go!
 
 
-╔════╗
-║C s ║
-║ @ S║
-║C s>║
-╚════╝
+╔══════╗
+║Cs   >║
+║@  sC ║
+╚══════╝
 
   > = stairs
   @ = anoran
-  C = captive
   s = sludge
-  S = thickSludge
+  C = captive
 
 
 Warrior abilities:
@@ -36,9 +34,9 @@ Warrior abilities:
 
   warrior.rescue()
 
-  warrior.directionOf() (NEW!)
+  warrior.directionOf()
 
-  warrior.listen() (NEW!)
+  warrior.listen()
 
 
 When you're done editing Player.js, run the warriorjs command again.

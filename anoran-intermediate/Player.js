@@ -14,7 +14,6 @@ class Map {
     for (var i = 0; i < 20; i++) {
       this.entries[i] = [];
     }
-    this.entries[10][10] = "player";
     this.playerX = 10;
     this.playerY = 10;
     this.playerDirection = "forward";
@@ -48,7 +47,7 @@ class Map {
         action = "rescue";
       }
     }
-    if (warrior.health() < 13 && action != "bind") {
+    if (warrior.health() < 8 && action != "bind") {
       warrior.rest();
     } else if (action == "bind") {
       this.bind(warrior, chosenDirection);
@@ -56,8 +55,15 @@ class Map {
       this.attack(warrior, chosenDirection);
     } else if (action == "rescue") {
       this.rescue(warrior, chosenDirection);
+    } else if (warrior.listen().length > 0) {
+      var nextUnit = warrior.listen()[0];
+      if (warrior.feel(warrior.directionOf(nextUnit)).isStairs()) {
+        this.move(warrior, "left");
+      } else {
+        this.move(warrior, warrior.directionOf(nextUnit));
+      }
     } else {
-      this.move(warrior.directionOfStairs());
+      this.move(warrior, warrior.directionOfStairs());
     }
   }
   add(warrior, direction) {
@@ -75,11 +81,11 @@ class Map {
   }
   move(warrior, direction) {
     var coords = this.toCoordinates(direction);
-    if (this.entries[coords.x][coords.y] === undefined) {
+//    if (this.entries[coords.x][coords.y] === undefined) {
       warrior.walk(direction);
       this.playerX = coords.x;
       this.playerY = coords.y;
-    }
+//    }
   }
   attack(warrior, direction) {
     var coords = this.toCoordinates(direction);
