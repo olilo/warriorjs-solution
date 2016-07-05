@@ -1,20 +1,20 @@
-Level 7
+Level 9
 
-Another ticking sound, but some sludge is blocking the way.
+Never before have you seen a room so full of sludge. Start the fireworks!
 
-Tip: Quickly kill the sludge and rescue the captive before the bomb goes off. You can't simply go around them.
+Tip: Be careful not to let the ticking captive get caught in the flames. Use `warrior.distanceOf()` to avoid the captives.
 
 
-╔═════╗
-║ sC >║
-║@ C C║
-║ s   ║
-╚═════╝
+╔════╗
+║ssC>║
+║@sss║
+║ssC ║
+╚════╝
 
   > = stairs
   @ = anoran
-  s = sludge
   C = captive
+  s = sludge
 
 
 Warrior abilities:
@@ -38,6 +38,12 @@ Warrior abilities:
   warrior.directionOf()
 
   warrior.listen()
+
+  warrior.detonate()
+
+  warrior.look()
+
+  warrior.distanceOf() (NEW!)
 
 
 When you're done editing Player.js, run the warriorjs command again.

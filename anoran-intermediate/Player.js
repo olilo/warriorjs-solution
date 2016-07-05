@@ -17,64 +17,65 @@ class Map {
     this.playerX = 10;
     this.playerY = 10;
     this.playerDirection = "forward";
+    this.directions = ["left", "right", "forward", "backward"];
   }
-  toCoordinates(direction) {
+  toCoordinates(direction, distance) {
+    if (distance == undefined) {
+      distance = 1;
+    }
     if (direction == "left") {
-      return {x: this.playerX, y: this.playerY - 1};
+      return {x: this.playerX, y: this.playerY - distance};
     } else if (direction == "right") {
-      return {x: this.playerX, y: this.playerY + 1};
+      return {x: this.playerX, y: this.playerY + distance};
     } else if (direction == "forward") {
-      return {x: this.playerX + 1, y: this.playerY};
+      return {x: this.playerX + distance, y: this.playerY};
     } else {
-      return {x: this.playerX - 1, y: this.playerY};
+      return {x: this.playerX - distance, y: this.playerY};
     }
   }
   decideAction(warrior) {
-    var directions = ["left", "right", "forward", "backward"];
     var chosenDirection = undefined;
     var action = "";
-    for (var i = 0; i < directions.length; i++) {
-      var coords = this.toCoordinates(directions[i]);
-      this.add(warrior, directions[i]);
+    var lookAhead = warrior.look();
+    for (var i = 0; i < this.directions.length; i++) {
+      var dir = this.directions[i];
+      var coords = this.toCoordinates(dir);
+      this.add(warrior, dir);
       if (this.entries[coords.x][coords.y] == "enemy") {
-        chosenDirection = directions[i];
+        chosenDirection = dir;
         action = "bind";
       } else if (action != "bind" && this.entries[coords.x][coords.y] == "boundenemy") {
-        chosenDirection = directions[i];
-        action = "attack";
+        chosenDirection = dir;
+        if (warrior.health() > 8) {
+          action = "bomb";
+        } else {
+          action = "attack";
+        }
       } else if (action != "bind" && action != "attack" && this.entries[coords.x][coords.y] == "captive") {
-        chosenDirection = directions[i];
+        chosenDirection = dir;
         action = "rescue";
       }
     }
     var ticking = this.findTicking(warrior);
+    var tickingDistance = ticking ? warrior.distanceOf(ticking) : 20;
+    if (action != "bind" && lookAhead[1].isEnemy() && tickingDistance > 2) {
+      action = "bomb";
+    }
     if (ticking != null) {
-      for (var i = 0; i < directions.length; i++) {
-        if (warrior.feel(directions[i]).isCaptive()) {
-          chosenDirection = directions[i];
-          action = "rescue";
-          break;
-        }
-      }
-      if (action != "rescue") {
-        var dir = warrior.directionOf(ticking);
-        if (!warrior.feel(dir).isEmpty()) {
-          if (warrior.feel("left").isEmpty()) {
-            dir = "left";
-          } else if (warrior.feel("right").isEmpty()) {
-            dir = "right";
-          } else if (warrior.feel("forward").isEmpty()) {
-            dir = "forward";
-          }
-        }
-        this.move(warrior, dir);
-        return;
+      var decision = this.rescueTicking(warrior, ticking);
+      if (decision.action != undefined) {
+        action = decision.action;
+        chosenDirection = decision.direction;
       }
     }
-    if (warrior.health() < 8 && action != "bind") {
+    if (warrior.health() < 8 && action != "bind" && warrior.listen().length > 0) {
       warrior.rest();
+    } else if (action == "move") {
+      this.move(warrior, chosenDirection);
     } else if (action == "bind") {
       this.bind(warrior, chosenDirection);
+    } else if (action == "bomb") {
+      this.explodeBomb(warrior, chosenDirection);
     } else if (action == "attack") {
       this.attack(warrior, chosenDirection);
     } else if (action == "rescue") {
@@ -101,8 +102,12 @@ class Map {
   }
   add(warrior, direction) {
     var coords = this.toCoordinates(direction);
+    var space = warrior.feel(direction);
+    if (space.isEmpty()) {
+      this.entries[coords.x][coords.y] = undefined;
+      return;
+    }
     if (this.entries[coords.x][coords.y] === undefined) {
-      var space = warrior.feel(direction);
       if (space.isCaptive()) {
         this.entries[coords.x][coords.y] = "captive";
       } else if (space.isEnemy()) {
@@ -112,24 +117,57 @@ class Map {
       }
     }
   }
+  rescueTicking(warrior, ticking) {
+    for (var i = 0; i < this.directions.length; i++) {
+      var dir = this.directions[i];
+      var coords = this.toCoordinates(dir);
+      if (this.entries[coords.x][coords.y] == "captive") {
+        return {action: "rescue", direction: this.directions[i]};
+      }
+    }
+    var dir = warrior.directionOf(ticking);
+    if (!warrior.feel(dir).isEmpty()) {
+      if (warrior.feel("left").isEmpty()) {
+        dir = "left";
+      } else if (warrior.feel("right").isEmpty()) {
+        dir = "right";
+      } else if (warrior.feel("forward").isEmpty()) {
+        dir = "forward";
+      } else {
+        return {}
+      }
+    }
+    return {action: "move", direction: dir};
+  }
   move(warrior, direction) {
     var coords = this.toCoordinates(direction);
-//    if (this.entries[coords.x][coords.y] === undefined) {
+    if (this.entries[coords.x][coords.y] === undefined) {
       warrior.walk(direction);
       this.playerX = coords.x;
       this.playerY = coords.y;
-//    }
+    }
+  }
+  explodeBomb(warrior, direction) {
+    var coords = this.toCoordinates(direction);
+    //if (this.entries[coords.x][coords.y] == "boundenemy") {
+      warrior.detonate(direction);
+      if (warrior.feel(direction).isEmpty()) {
+        this.entries[coords.x][coords.y] = undefined;
+      } else {
+        this.entries[coords.x][coords.y] = "enemy";
+      }
+    //}
   }
   attack(warrior, direction) {
     var coords = this.toCoordinates(direction);
-    if (this.entries[coords.x][coords.y] == "boundenemy") {
+    //if (this.entries[coords.x][coords.y] == "boundenemy") {
       warrior.attack(direction);
       if (warrior.feel(direction).isEmpty()) {
         this.entries[coords.x][coords.y] = undefined;
       } else {
         this.entries[coords.x][coords.y] = "enemy";
       }
-    }
+    //}
   }
   bind(warrior, direction) {
     var coords = this.toCoordinates(direction);
