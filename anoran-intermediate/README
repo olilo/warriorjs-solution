@@ -1,0 +1,39 @@
+Level 3
+
+You feel slime on all sides, you're surrounded!
+
+Tip: Call `warrior.bind(direction)` to bind an enemy to keep him from attacking. Bound enemies look like captives.
+
+
+╔═══╗
+║>s ║
+║s@s║
+║ C ║
+╚═══╝
+
+  > = stairs
+  @ = anoran
+  C = captive
+  s = sludge
+
+
+Warrior abilities:
+
+  warrior.directionOfStairs()
+
+  warrior.walk()
+
+  warrior.feel()
+
+  warrior.attack()
+
+  warrior.health()
+
+  warrior.rest()
+
+  warrior.bind() (NEW!)
+
+  warrior.rescue() (NEW!)
+
+
+When you're done editing Player.js, run the warriorjs command again.
