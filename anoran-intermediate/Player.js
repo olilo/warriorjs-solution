@@ -37,11 +37,12 @@ class Map {
     var chosenDirection = undefined;
     var action = "";
     var lookAhead = warrior.look();
+    var corridor = warrior.feel("left").isWall() && warrior.feel("right").isWall();
     for (var i = 0; i < this.directions.length; i++) {
       var dir = this.directions[i];
       var coords = this.toCoordinates(dir);
       this.add(warrior, dir);
-      if (this.entries[coords.x][coords.y] == "enemy") {
+      if (this.entries[coords.x][coords.y] == "enemy" && !corridor) {
         chosenDirection = dir;
         action = "bind";
       } else if (action != "bind" && this.entries[coords.x][coords.y] == "boundenemy") {
@@ -58,9 +59,6 @@ class Map {
     }
     var ticking = this.findTicking(warrior);
     var tickingDistance = ticking ? warrior.distanceOf(ticking) : 20;
-    if (action != "bind" && lookAhead[1].isEnemy() && tickingDistance > 2) {
-      action = "bomb";
-    }
     if (ticking != null) {
       var decision = this.rescueTicking(warrior, ticking);
       if (decision.action != undefined) {
@@ -68,16 +66,21 @@ class Map {
         chosenDirection = decision.direction;
       }
     }
-    if (warrior.health() < 8 && action != "bind" && warrior.listen().length > 0) {
+    if (action != "bind" && lookAhead[1].isEnemy() && !lookAhead[2].isCaptive() && tickingDistance > 2) {
+      if (!corridor || !lookAhead[0].isEmpty()) {
+        action = "bomb";
+      }
+    }
+    if (warrior.health() < 8 && !corridor && action != "bind" && warrior.listen().length > 0) {
       warrior.rest();
-    } else if (action == "move") {
-      this.move(warrior, chosenDirection);
     } else if (action == "bind") {
       this.bind(warrior, chosenDirection);
     } else if (action == "bomb") {
       this.explodeBomb(warrior, chosenDirection);
     } else if (action == "attack") {
       this.attack(warrior, chosenDirection);
+    } else if (action == "move") {
+      this.move(warrior, chosenDirection);
     } else if (action == "rescue") {
       this.rescue(warrior, chosenDirection);
     } else if (warrior.listen().length > 0) {
