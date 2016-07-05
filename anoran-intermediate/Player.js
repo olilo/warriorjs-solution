@@ -5,20 +5,6 @@ class Player {
       this._map = new Map();
     }
     this._map.decideAction(warrior);
-    /*  
-    if (warrior.feel('right').isEnemy()) {
-      warrior.bind('right');
-      this.bound['right'] = true;
-    } else if (warrior.feel('backward').isEnemy()) {
-      warrior.bind('backward');
-    } else if (warrior.feel().isEnemy()) {
-      warrior.attack();
-    } else if (warrior.health() < 13) {
-      warrior.rest();
-    } else {
-      warrior.walk(warrior.directionOfStairs());
-    }
-    */
   }
 }
 
@@ -62,7 +48,7 @@ class Map {
         action = "rescue";
       }
     }
-    if (warrior.health() < 13 && action != "attack") {
+    if (warrior.health() < 13 && action != "bind") {
       warrior.rest();
     } else if (action == "bind") {
       this.bind(warrior, chosenDirection);
@@ -71,7 +57,7 @@ class Map {
     } else if (action == "rescue") {
       this.rescue(warrior, chosenDirection);
     } else {
-      warrior.walk(warrior.directionOfStairs());
+      this.move(warrior.directionOfStairs());
     }
   }
   add(warrior, direction) {
@@ -102,7 +88,7 @@ class Map {
       if (warrior.feel(direction).isEmpty()) {
         this.entries[coords.x][coords.y] = undefined;
       } else {
-        this.entries[coords.x]{coords.y] = "enemy";
+        this.entries[coords.x][coords.y] = "enemy";
       }
     }
   }
@@ -110,13 +96,18 @@ class Map {
     var coords = this.toCoordinates(direction);
     if (this.entries[coords.x][coords.y] == "enemy") {
       warrior.bind(direction);
-      this.entries[coords.x][coords.y] = "boundenemy";
+      if (warrior.feel(direction).isEmpty()) {
+        this.entries[coords.x][coords.y] = undefined;
+      } else {
+        this.entries[coords.x][coords.y] = "boundenemy";
+      }
     }
   }
   rescue(warrior, direction) {
     var coords = this.toCoordinates(direction);
     if (this.entries[coords.x][coords.y] == "captive") {
       warrior.rescue(direction);
+      this.entries[coords.x][coords.y] = undefined;
     }
   }
 }
