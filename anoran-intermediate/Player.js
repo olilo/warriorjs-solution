@@ -47,6 +47,30 @@ class Map {
         action = "rescue";
       }
     }
+    var ticking = this.findTicking(warrior);
+    if (ticking != null) {
+      for (var i = 0; i < directions.length; i++) {
+        if (warrior.feel(directions[i]).isCaptive()) {
+          chosenDirection = directions[i];
+          action = "rescue";
+          break;
+        }
+      }
+      if (action != "rescue") {
+        var dir = warrior.directionOf(ticking);
+        if (!warrior.feel(dir).isEmpty()) {
+          if (warrior.feel("left").isEmpty()) {
+            dir = "left";
+          } else if (warrior.feel("right").isEmpty()) {
+            dir = "right";
+          } else if (warrior.feel("forward").isEmpty()) {
+            dir = "forward";
+          }
+        }
+        this.move(warrior, dir);
+        return;
+      }
+    }
     if (warrior.health() < 8 && action != "bind") {
       warrior.rest();
     } else if (action == "bind") {
@@ -65,6 +89,15 @@ class Map {
     } else {
       this.move(warrior, warrior.directionOfStairs());
     }
+  }
+  findTicking(warrior) {
+    var units = warrior.listen();
+    for (var i = 0; i < units.length; i++) {
+      if (units[i].isCaptive() && units[i].isTicking()) {
+        return units[i];
+      }
+    }
+    return null;
   }
   add(warrior, direction) {
     var coords = this.toCoordinates(direction);
